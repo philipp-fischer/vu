@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 from image_loader_processor import *
 
+
 class ImageWidget(QtGui.QWidget):
     def __init__(self):
         super(ImageWidget, self).__init__()
@@ -47,7 +48,6 @@ class ImageWidget(QtGui.QWidget):
         else:
             # self.ndimage[:,:,:] = (self.ndimage * 0.7).astype(np.uint8)
             self.img_proc.set_modifiers({'level_upper': 100})
-            pass
 
         self.update()
 

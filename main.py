@@ -2,8 +2,14 @@ import os
 import sys
 from PyQt4 import QtGui, QtCore
 from image_widget import *
+from histogram_widget import *
 from image_loader_processor import *
 
+
+# TODO:
+# - Do histogram computation in other process (multiprocessing module)
+# - R,G,B histograms
+# - Support 16 bit images
 
 class VUWidget(QtGui.QWidget):
     def __init__(self):
@@ -12,25 +18,26 @@ class VUWidget(QtGui.QWidget):
         self.test_image = ImageLoaderProcessor()
         self.test_image.read_image(r'C:\Users\phil\Desktop\me-pics\manu-50er.jpg')
 
+        self.image_widget = None
+        self.hist_widget = None
+
         self.initUI()
 
     def initUI(self):
         vbox = QtGui.QVBoxLayout()
 
         # Create the widget that displays the video frame
-        self.pic = ImageWidget()
-        self.pic.setImage(self.test_image)
+        self.image_widget = ImageWidget()
+        self.image_widget.setImage(self.test_image)
 
-        man_label = QtGui.QLabel()
-        man_label.setText("Press ESC to close.")
-        man_label.setSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Fixed)
+        self.hist_widget = HistogramWidget()
+        self.hist_widget.setImage(self.test_image)
 
         # Put everything together and show it
-        vbox.addWidget(self.pic)
-        # vbox.addWidget(man_label)
+        vbox.addWidget(self.image_widget)
+        vbox.addWidget(self.hist_widget)
 
         vbox.setMargin(0)
-        man_label.setMargin(10)
 
         self.setLayout(vbox)
         self.setWindowTitle('vu - Analytical Image Viewer')

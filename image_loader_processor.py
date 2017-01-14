@@ -18,6 +18,9 @@ class ImageLoaderProcessor(QObject):
         # Pointer to a copy that will be referenced in the QImage (can be modified)
         self.ndimage = None
 
+        # Histogram
+        self.histogram = None
+
         # Image modifiers
         self.modifiers = {
             'level_lower': 0,
@@ -41,6 +44,8 @@ class ImageLoaderProcessor(QObject):
         # Set data pointer of QImage to our ndarray
         self.curimage.ndarray = self.ndimage
 
+        self.compute_histogram()
+
     def set_modifiers(self, modifier_change):
         self.modifiers.update(modifier_change)
         self.update_modified_image()
@@ -56,6 +61,17 @@ class ImageLoaderProcessor(QObject):
         self.ndimage[:, :, :] = new_image.astype(np.uint8)
 
         self.signalImageUpdated.emit()
+
+    def compute_histogram(self):
+        bin_boundaries = range(0, 256)
+        self.histogram = list(np.histogram(self.original_ndimage, bin_boundaries))
+
+        # Normalize maximum of histogram to 1
+        maxval = np.max(self.histogram[0])
+        self.histogram[0] = self.histogram[0].astype(np.float32) / float(maxval)
+
+    def get_histogram(self):
+        return self.histogram
 
     def get_processed_image(self):
         return self.curimage
