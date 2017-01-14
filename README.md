@@ -2,6 +2,8 @@
 
 vu (pronounced like *view* [vjuː]) aims to be a *fast* and *simple* image viewer that allows for detailed analysis of primarily non-natural images.
 
+It is purely written in Python 3 with PyQt4 and should be very portable.
+
 * Deep zoom-in and pixel value display.
 * Automatic and manual brightness level windowing for very bright or dark images
 * Intelligent image pre-loading and multi-process utilization. *No-hang* strategy
