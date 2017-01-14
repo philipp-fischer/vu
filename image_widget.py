@@ -1,7 +1,7 @@
 from PyQt4 import QtGui, QtCore, Qt
 import numpy as np
 import cv2
-
+from image_loader_processor import *
 
 class ImageWidget(QtGui.QWidget):
     def __init__(self):
@@ -17,21 +17,15 @@ class ImageWidget(QtGui.QWidget):
         self.trans = QtGui.QTransform()
         self.down_pos = None
 
+        self.img_proc = None
         # self.setMouseTracking(True)
 
     def initUI(self):
         self.setMinimumSize(600, 600)
 
-    def setImage(self, image_filename):
-        image = cv2.imread(image_filename)
-
-        total = image[:, :, ::-1].copy()
-        w = image.shape[1]
-        h = image.shape[0]
-        bytes_per_line = w * 3
-
-        self.curimage = QtGui.QImage(total.data, w, h, bytes_per_line, QtGui.QImage.Format_RGB888)
-        self.curimage.ndarray = total
+    def setImage(self, img_proc):
+        assert(isinstance(img_proc, ImageLoaderProcessor))
+        self.img_proc = img_proc
         self.update()
 
     def paintEvent(self, e):
@@ -50,6 +44,10 @@ class ImageWidget(QtGui.QWidget):
         if e.button() == QtCore.Qt.LeftButton:
             self.down_pos = np.array([e.pos().x(), e.pos().y()])
             self.down_trans = self.trans
+        else:
+            # self.ndimage[:,:,:] = (self.ndimage * 0.7).astype(np.uint8)
+            self.img_proc.set_modifiers({'level_upper': 100})
+            pass
 
         self.update()
 
@@ -86,11 +84,12 @@ class ImageWidget(QtGui.QWidget):
         qp.setBrush(QtGui.QColor(30, 30, 30))
         qp.drawRect(0, 0, w-1, h-1)
 
-        if self.curimage is not None:
-            assert(isinstance(self.curimage, QtGui.QImage))
+        if self.img_proc is not None:
+            curimage = self.img_proc.get_processed_image()
+            assert(isinstance(curimage, QtGui.QImage))
             qp.setTransform(self.trans)
 
-            qp.drawImage(QtCore.QPointF(0, 0), self.curimage)
+            qp.drawImage(QtCore.QPointF(0, 0), curimage)
 
         else:
             text = "Drop image here"

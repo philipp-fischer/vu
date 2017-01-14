@@ -2,11 +2,15 @@ import os
 import sys
 from PyQt4 import QtGui, QtCore
 from image_widget import *
+from image_loader_processor import *
 
 
 class VUWidget(QtGui.QWidget):
     def __init__(self):
         super(VUWidget, self).__init__()
+
+        self.test_image = ImageLoaderProcessor()
+        self.test_image.read_image(r'C:\Users\phil\Desktop\me-pics\manu-50er.jpg')
 
         self.initUI()
 
@@ -15,7 +19,7 @@ class VUWidget(QtGui.QWidget):
 
         # Create the widget that displays the video frame
         self.pic = ImageWidget()
-        self.pic.setImage(r'C:\Users\phil\Desktop\me-pics\manu-50er.jpg')
+        self.pic.setImage(self.test_image)
 
         man_label = QtGui.QLabel()
         man_label.setText("Press ESC to close.")
