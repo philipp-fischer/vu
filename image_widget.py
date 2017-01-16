@@ -5,6 +5,9 @@ from image_loader_processor import *
 
 
 class ImageWidget(QtGui.QWidget):
+
+    signalNewPixelInfo = pyqtSignal(dict)
+
     def __init__(self):
         super(ImageWidget, self).__init__()
 
@@ -19,7 +22,7 @@ class ImageWidget(QtGui.QWidget):
         self.down_pos = None
 
         self.img_proc = None
-        # self.setMouseTracking(True)
+        self.setMouseTracking(True)
 
     def initUI(self):
         self.setMinimumSize(600, 600)
@@ -45,7 +48,7 @@ class ImageWidget(QtGui.QWidget):
         if e.button() == QtCore.Qt.LeftButton:
             self.down_pos = np.array([e.pos().x(), e.pos().y()])
             self.down_trans = self.trans
-        else:
+        elif e.button() == QtCore.Qt.RightButton:
             # self.ndimage[:,:,:] = (self.ndimage * 0.7).astype(np.uint8)
             self.img_proc.set_modifiers({'level_upper': 100})
 
@@ -53,11 +56,23 @@ class ImageWidget(QtGui.QWidget):
 
     def mouseMoveEvent(self, e):
         assert(isinstance(e, QtGui.QMouseEvent))
-        if self.down_pos is not None:
-            mousepos = np.array([e.pos().x(), e.pos().y()])
-            tmp_trans = QtGui.QTransform().translate(*(mousepos - self.down_pos))
-            self.trans = self.down_trans * tmp_trans
-            self.update()
+        mousepos = np.array([e.pos().x(), e.pos().y()])
+
+        if e.buttons() != QtCore.Qt.NoButton:
+            if self.down_pos is not None:
+                tmp_trans = QtGui.QTransform().translate(*(mousepos - self.down_pos))
+                self.trans = self.down_trans * tmp_trans
+                self.update()
+        else:
+            assert(isinstance(self.trans, QtGui.QTransform))
+            img_pos = self.trans.inverted()[0].map(mousepos[0], mousepos[1])
+            x = int(img_pos[0])
+            y = int(img_pos[1])
+            self.signalNewPixelInfo.emit({
+                'img_pos': (x,y),
+                'color': self.img_proc.get_original_image()[y, x]
+            })
+
 
     def wheelEvent(self, e):
         assert(isinstance(e, QtGui.QWheelEvent))

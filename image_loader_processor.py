@@ -12,6 +12,9 @@ class ImageLoaderProcessor(QObject):
     def __init__(self):
         super().__init__()
 
+        # Last read filename
+        self.filename = None
+
         # Pointer to the original cv2 numpy image with view on inverted channels (don't modify)
         self.original_ndimage = None
 
@@ -28,6 +31,7 @@ class ImageLoaderProcessor(QObject):
         }
 
     def read_image(self, filename):
+        self.filename = filename
         image = cv2.imread(filename)
 
         self.original_ndimage = image[:, :, ::-1]
@@ -45,6 +49,10 @@ class ImageLoaderProcessor(QObject):
         self.curimage.ndarray = self.ndimage
 
         self.compute_histogram()
+
+    def reload(self):
+        self.read_image(self.filename)
+        self.update_modified_image()
 
     def set_modifiers(self, modifier_change):
         self.modifiers.update(modifier_change)
@@ -76,3 +84,5 @@ class ImageLoaderProcessor(QObject):
     def get_processed_image(self):
         return self.curimage
 
+    def get_original_image(self):
+        return self.original_ndimage
