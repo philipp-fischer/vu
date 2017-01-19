@@ -37,6 +37,10 @@ class ImageLoaderProcessor(QObject):
         self.original_ndimage = image[:, :, ::-1]
         self.ndimage = self.original_ndimage.copy()
 
+        # Find maximum and minimum value (TODO this should not be done in general but on request)
+        self.modifiers["level_lower"] = np.min(self.ndimage.flatten())
+        self.modifiers["level_upper"] = np.max(self.ndimage.flatten())
+
         self.width = image.shape[1]
         self.height = image.shape[0]
 
@@ -49,6 +53,7 @@ class ImageLoaderProcessor(QObject):
         self.curimage.ndarray = self.ndimage
 
         self.compute_histogram()
+        self.update_modified_image()
 
     def reload(self):
         self.read_image(self.filename)
