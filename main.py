@@ -1,9 +1,10 @@
 import os
 import sys
-from PyQt4 import QtGui, QtCore
+from PyQt4 import QtGui
 from image_widget import *
 from histogram_widget import *
 from image_loader_processor import *
+from folder_accessor import *
 
 
 # TODO:
@@ -15,8 +16,7 @@ class VUWidget(QtGui.QWidget):
     def __init__(self):
         super(VUWidget, self).__init__()
 
-        self.test_image = ImageLoaderProcessor()
-        self.test_image.read_image(r'C:\Users\Public\Documents\refRotatedBoxedDepth_avg.bmp')
+        self.folder_accessor = FolderAccessor()
 
         self.image_widget = None
         self.hist_widget = None
@@ -29,10 +29,7 @@ class VUWidget(QtGui.QWidget):
 
         # Create the widget that displays the video frame
         self.image_widget = ImageWidget()
-        self.image_widget.setImage(self.test_image)
-
         self.hist_widget = HistogramWidget()
-        self.hist_widget.setImage(self.test_image)
 
         self.info_label = QtGui.QLabel()
         self.info_label.setText("Info")
@@ -53,6 +50,7 @@ class VUWidget(QtGui.QWidget):
 
         # Connect signals and slots
         self.image_widget.signalNewPixelInfo.connect(self.update_info_label)
+        self.folder_accessor.signalFileChanged.connect(self.slotUpdateImageFromAccessor)
 
     def update_info_label(self, info):
         self.info_label.setText(str(info))
@@ -73,13 +71,9 @@ class VUWidget(QtGui.QWidget):
             self.test_image.reload()
             self.image_widget.update()  # Should later be done by signal/slot
         elif e.key() == QtCore.Qt.Key_Left:
-            self.test_image = ImageLoaderProcessor()
-            self.test_image.read_image(r'C:\Users\Public\Documents\refRotatedBoxedDepth_avg.bmp')
-            self.image_widget.setImage(self.test_image)
+            self.folder_accessor.move_position(-1)
         elif e.key() == QtCore.Qt.Key_Right:
-            self.test_image = ImageLoaderProcessor()
-            self.test_image.read_image(r'C:\Users\Public\Documents\refRotatedBoxedDepth_median.bmp')
-            self.image_widget.setImage(self.test_image)
+            self.folder_accessor.move_position(1)
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
@@ -91,8 +85,14 @@ class VUWidget(QtGui.QWidget):
         url = event.mimeData().urls()[0]
         path = str(url.toLocalFile())
         if os.path.isfile(path):
-            # Load image
-            pass
+            self.folder_accessor.load_folder(path)
+            print(path)
+
+    def slotUpdateImageFromAccessor(self):
+        print("FWD")
+        cur_image = self.folder_accessor.get_current_image()
+        self.image_widget.setImage(cur_image)
+        self.hist_widget.setImage(cur_image)
 
     def closeEvent(self, e):
         pass

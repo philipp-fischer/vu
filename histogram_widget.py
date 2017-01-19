@@ -37,13 +37,16 @@ class HistogramWidget(QtGui.QWidget):
         w = size.width()
         h = size.height()
 
-        hist = self.img_proc.get_histogram()[0]
-
         qp.setRenderHint(QtGui.QPainter.Antialiasing)
 
         qp.setPen(QtCore.Qt.NoPen)
         qp.setBrush(QtGui.QColor(50, 50, 50))
         qp.drawRect(0, 0, w, h)
+
+        if self.img_proc is None:
+            return
+
+        hist = self.img_proc.get_histogram()[0]
 
         # Stretch histogram to fit widget
         trans = QtGui.QTransform()

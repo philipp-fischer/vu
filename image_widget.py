@@ -58,6 +58,9 @@ class ImageWidget(QtGui.QWidget):
         assert(isinstance(e, QtGui.QMouseEvent))
         mousepos = np.array([e.pos().x(), e.pos().y()])
 
+        if self.img_proc is None:
+            return
+
         if e.buttons() != QtCore.Qt.NoButton:
             if self.down_pos is not None:
                 tmp_trans = QtGui.QTransform().translate(*(mousepos - self.down_pos))
@@ -73,10 +76,12 @@ class ImageWidget(QtGui.QWidget):
                 'color': self.img_proc.get_original_image()[y, x]
             })
 
-
     def wheelEvent(self, e):
         assert(isinstance(e, QtGui.QWheelEvent))
         additional_scale = 1.1 ** (e.delta() / 50)
+
+        if self.img_proc is None:
+            return
 
         mousepos = np.array([e.pos().x(), e.pos().y()])
 
