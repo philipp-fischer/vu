@@ -64,7 +64,10 @@ class VUWidget(QtGui.QWidget):
         self.folder_accessor.signalFileChanged.connect(self.slotUpdateImageFromAccessor)
 
     def update_info_label(self, info):
-        self.info_label.setText(str(info))
+        label_text = "Pos [%4d, %4d]\nColor = %s" % \
+                     (info['img_pos'][0], info['img_pos'][1],
+                      str(info['color']))
+        self.info_label.setText(label_text)
 
     def resizeEvent(self, e):
         super(VUWidget, self).resizeEvent(e)
@@ -100,7 +103,6 @@ class VUWidget(QtGui.QWidget):
             print(path)
 
     def slotUpdateImageFromAccessor(self):
-        print("FWD")
         cur_image = self.folder_accessor.get_current_image()
         self.image_widget.setImage(cur_image)
         self.hist_widget.setImage(cur_image)

@@ -86,3 +86,9 @@ class ImageLoaderProcessor(QObject):
 
     def get_original_image(self):
         return self.original_ndimage
+
+    def get_width(self):
+        return self.original_ndimage.shape[1]
+
+    def get_height(self):
+        return self.original_ndimage.shape[0]

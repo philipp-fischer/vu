@@ -71,10 +71,11 @@ class ImageWidget(QtGui.QWidget):
             img_pos = self.trans.inverted()[0].map(mousepos[0], mousepos[1])
             x = int(img_pos[0])
             y = int(img_pos[1])
-            self.signalNewPixelInfo.emit({
-                'img_pos': (x,y),
-                'color': self.img_proc.get_original_image()[y, x]
-            })
+            if 0 <= x < self.img_proc.get_width() and 0 <= y < self.img_proc.get_height():
+                self.signalNewPixelInfo.emit({
+                    'img_pos': (x,y),
+                    'color': self.img_proc.get_original_image()[y, x]
+                })
 
     def wheelEvent(self, e):
         assert(isinstance(e, QtGui.QWheelEvent))
