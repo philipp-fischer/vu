@@ -25,6 +25,8 @@ class VUWidget(QtGui.QWidget):
         self.initUI()
 
     def initUI(self):
+        outer_hbox = QtGui.QHBoxLayout()
+
         vbox = QtGui.QVBoxLayout()
 
         # Create the widget that displays the video frame
@@ -32,18 +34,27 @@ class VUWidget(QtGui.QWidget):
         self.hist_widget = HistogramWidget()
 
         self.info_label = QtGui.QLabel()
+        info_font = QtGui.QFont()
+        info_font.setFamily("Lucida")
+        info_font.setFixedPitch(True)
         self.info_label.setText("Info")
-        self.info_label.setMaximumHeight(50)
+        self.info_label.setFont(info_font)
+        self.info_label.setMinimumWidth(200)
+        self.info_label.setMaximumWidth(200)
         self.info_label.setSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Fixed)
 
         # Put everything together and show it
         vbox.addWidget(self.image_widget)
         vbox.addWidget(self.hist_widget)
-        vbox.addWidget(self.info_label)
 
         vbox.setMargin(0)
 
-        self.setLayout(vbox)
+        outer_hbox.addLayout(vbox)
+        outer_hbox.addWidget(self.info_label)
+
+        outer_hbox.setMargin(0)
+
+        self.setLayout(outer_hbox)
         self.setWindowTitle('vu - Analytical Image Viewer')
         self.setAcceptDrops(True)
         self.show()

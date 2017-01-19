@@ -25,7 +25,7 @@ class ImageWidget(QtGui.QWidget):
         self.setMouseTracking(True)
 
     def initUI(self):
-        self.setMinimumSize(600, 600)
+        self.setMinimumSize(800, 800)
 
     def setImage(self, img_proc):
         assert(isinstance(img_proc, ImageLoaderProcessor))
