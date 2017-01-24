@@ -19,6 +19,9 @@ class ImageWidget(QtGui.QWidget):
         self.scaling = 1.0
 
         self.trans = QtGui.QTransform()
+        self.fit_img_transform = None
+        self.full_transform = None
+
         self.down_pos = None
 
         self.img_proc = None
@@ -30,6 +33,8 @@ class ImageWidget(QtGui.QWidget):
     def setImage(self, img_proc):
         assert(isinstance(img_proc, ImageLoaderProcessor))
         self.img_proc = img_proc
+        self.trans = QtGui.QTransform()
+        self.fit_img_transform = None
         self.update()
 
     def paintEvent(self, e):
@@ -67,8 +72,8 @@ class ImageWidget(QtGui.QWidget):
                 self.trans = self.down_trans * tmp_trans
                 self.update()
         else:
-            assert(isinstance(self.trans, QtGui.QTransform))
-            img_pos = self.trans.inverted()[0].map(mousepos[0], mousepos[1])
+            assert(isinstance(self.full_transform, QtGui.QTransform))
+            img_pos = self.full_transform.inverted()[0].map(mousepos[0], mousepos[1])
             x = int(img_pos[0])
             y = int(img_pos[1])
             if 0 <= x < self.img_proc.get_width() and 0 <= y < self.img_proc.get_height():
@@ -93,6 +98,26 @@ class ImageWidget(QtGui.QWidget):
 
         self.update()
 
+    def updateTranform(self):
+        size = self.size()
+        w = size.width()
+        h = size.height()
+        curimage = self.img_proc.get_processed_image()
+
+        if h / w > curimage.height() / curimage.width():
+            fit_img_scale = w / curimage.width()
+            fit_img_offset = (0, (h - fit_img_scale * curimage.height()))
+        else:
+            fit_img_scale = h / curimage.height()
+            fit_img_offset = ((w - fit_img_scale * curimage.width()), 0)
+
+            self.fit_img_transform = QtGui.QTransform().scale(fit_img_scale, fit_img_scale).translate(*fit_img_offset)
+            self.full_transform = self.trans * self.fit_img_transform
+
+    def resizeEvent(self, e):
+        assert(isinstance(e, QtGui.QResizeEvent))
+        self.fit_img_transform = None
+
     def drawWidget(self, qp):
         size = self.size()
         w = size.width()
@@ -108,7 +133,12 @@ class ImageWidget(QtGui.QWidget):
         if self.img_proc is not None:
             curimage = self.img_proc.get_processed_image()
             assert(isinstance(curimage, QtGui.QImage))
-            qp.setTransform(self.trans)
+
+            if self.fit_img_transform is None:
+                self.updateTranform()
+
+            self.full_transform = self.trans * self.fit_img_transform
+            qp.setTransform(self.full_transform)
 
             qp.drawImage(QtCore.QPointF(0, 0), curimage)
 
