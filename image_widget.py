@@ -4,6 +4,13 @@ import cv2
 from image_loader_processor import *
 
 
+def transformToArray(transf):
+    assert(isinstance(transf, QtGui.QTransform))
+    return np.array([[transf.m11(), transf.m12(), transf.m13()],
+                     [transf.m21(), transf.m22(), transf.m23()],
+                     [transf.m31(), transf.m32(), transf.m33()]])
+
+
 class ImageWidget(QtGui.QWidget):
 
     signalNewPixelInfo = pyqtSignal(dict)
@@ -61,19 +68,24 @@ class ImageWidget(QtGui.QWidget):
 
     def mouseMoveEvent(self, e):
         assert(isinstance(e, QtGui.QMouseEvent))
+        if not isinstance(self.full_transform, QtGui.QTransform):
+            return
+
         mousepos = np.array([e.pos().x(), e.pos().y()])
+        img_pos = self.full_transform.inverted()[0].map(float(e.pos().x()), float(e.pos().y()))
 
         if self.img_proc is None:
             return
 
         if e.buttons() != QtCore.Qt.NoButton:
             if self.down_pos is not None:
-                tmp_trans = QtGui.QTransform().translate(*(mousepos - self.down_pos))
-                self.trans = self.down_trans * tmp_trans
+                inv_fulltrans = self.full_transform.inverted()[0]
+                mouse_pos_delta = np.array(inv_fulltrans.map(*mousepos)) - np.array(inv_fulltrans.map(*self.down_pos))
+
+                tmp_trans = QtGui.QTransform().translate(*mouse_pos_delta)
+                self.trans = tmp_trans * self.down_trans
                 self.update()
         else:
-            assert(isinstance(self.full_transform, QtGui.QTransform))
-            img_pos = self.full_transform.inverted()[0].map(mousepos[0], mousepos[1])
             x = int(img_pos[0])
             y = int(img_pos[1])
             if 0 <= x < self.img_proc.get_width() and 0 <= y < self.img_proc.get_height():
@@ -90,12 +102,13 @@ class ImageWidget(QtGui.QWidget):
             return
 
         mousepos = np.array([e.pos().x(), e.pos().y()])
+        inv_imgtrans = self.fit_img_transform.inverted()[0]
+        mouse_pos_notfit = np.array(inv_imgtrans.map(*mousepos))
 
         tmp_trans = \
-        QtGui.QTransform().translate(*(mousepos)).scale(additional_scale, additional_scale).translate(*(-mousepos))
+        QtGui.QTransform().translate(*(mouse_pos_notfit)).scale(additional_scale, additional_scale).translate(*(-mouse_pos_notfit))
 
         self.trans *= tmp_trans
-
         self.update()
 
     def updateTranform(self):
@@ -106,13 +119,13 @@ class ImageWidget(QtGui.QWidget):
 
         if h / w > curimage.height() / curimage.width():
             fit_img_scale = w / curimage.width()
-            fit_img_offset = (0, (h - fit_img_scale * curimage.height()))
+            fit_img_offset = (0, (h - fit_img_scale * curimage.height()) / 2)
         else:
             fit_img_scale = h / curimage.height()
-            fit_img_offset = ((w - fit_img_scale * curimage.width()), 0)
+            fit_img_offset = ((w - fit_img_scale * curimage.width()) / 2, 0)
 
-            self.fit_img_transform = QtGui.QTransform().scale(fit_img_scale, fit_img_scale).translate(*fit_img_offset)
-            self.full_transform = self.trans * self.fit_img_transform
+        self.fit_img_transform = QtGui.QTransform().translate(*fit_img_offset).scale(fit_img_scale, fit_img_scale)
+        self.full_transform = self.trans * self.fit_img_transform
 
     def resizeEvent(self, e):
         assert(isinstance(e, QtGui.QResizeEvent))
