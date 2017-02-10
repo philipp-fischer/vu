@@ -42,6 +42,13 @@ class ImageWidget(QtGui.QWidget):
         self.img_proc = img_proc
         self.trans = QtGui.QTransform()
         self.fit_img_transform = None
+
+        self.signalNewPixelInfo.emit({
+            'filename': self.img_proc.get_filename(),
+            'img_pos': (0, 0),
+            'color': [0, 0, 0]
+        })
+
         self.update()
 
     def paintEvent(self, e):
@@ -90,7 +97,8 @@ class ImageWidget(QtGui.QWidget):
             y = int(img_pos[1])
             if 0 <= x < self.img_proc.get_width() and 0 <= y < self.img_proc.get_height():
                 self.signalNewPixelInfo.emit({
-                    'img_pos': (x,y),
+                    'filename': self.img_proc.get_filename(),
+                    'img_pos': (x, y),
                     'color': self.img_proc.get_original_image()[y, x]
                 })
 

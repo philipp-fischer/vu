@@ -24,6 +24,9 @@ class VUWidget(QtGui.QWidget):
 
         self.initUI()
 
+        if len(sys.argv) > 1 and os.path.isfile(sys.argv[1]):
+            self.folder_accessor.load_folder(sys.argv[1])
+
     def initUI(self):
         outer_hbox = QtGui.QHBoxLayout()
 
@@ -64,8 +67,9 @@ class VUWidget(QtGui.QWidget):
         self.folder_accessor.signalFileChanged.connect(self.slotUpdateImageFromAccessor)
 
     def update_info_label(self, info):
-        label_text = "Pos [%4d, %4d]\nColor = %s" % \
-                     (info['img_pos'][0], info['img_pos'][1],
+        label_text = "%s\nPos [%4d, %4d]\nColor = %s" % \
+                     (os.path.basename(info['filename']),
+                      info['img_pos'][0], info['img_pos'][1],
                       str(info['color']))
         self.info_label.setText(label_text)
 
